@@ -3,6 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from keras.optimizers import Adam
 
 from exoplanets_ia import kepler_cumulative
 
@@ -42,7 +46,7 @@ df = kepler_cumulative.copy()  # trabaja sobre una copia
 df['koi_disposition'] = df['koi_disposition'].astype(str).str.strip().str.upper()
 
 # crear label: CONFIRMED o CANDIDATE -> 1, else 0
-df['label'] = df['koi_disposition'].map(lambda x: 1 if x in ("CONFIRMED","CANDIDATE") else 0)
+df['label'] = df['koi_disposition'].map(lambda x: 1 if x in ("CONFIRMED","C ANDIDATE") else 0)
 
 # ver balance de clases
 print("Distribución de labels:\n", df['label'].value_counts())
@@ -69,9 +73,11 @@ preprocessor = ColumnTransformer(transformers=[
     ('num', numeric_transformer, features)
 ], remainder='drop')  # 'drop' mantiene solo las features listadas
 
+# eliminar filas con NaN en las columnas de features
+df_clean = df.dropna(subset=features)
 
-X = df[features]
-y = df['label']
+X = df_clean[features]
+y = df_clean['label']
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
@@ -156,10 +162,10 @@ print("Mejores parámetros:", grid.best_params_)
 print("Mejor score (cv):", grid.best_score_)
 best_model = grid.best_estimator_
 
-
-joblib.dump(clf, "rf_exoplanet_classifier_basic.joblib")
-# o si usaste grid:
-joblib.dump(best_model, "rf_exoplanet_classifier_grid.joblib")
+    #Crear modelo Random Forest
+# joblib.dump(clf, "rf_exoplanet_classifier_basic.joblib")
+# # o si usaste grid:
+# joblib.dump(best_model, "rf_exoplanet_classifier_grid.joblib")
 
 
 # X_new = candidates_df[features]
@@ -167,3 +173,55 @@ joblib.dump(best_model, "rf_exoplanet_classifier_grid.joblib")
 # candidates_df['prob_planet'] = probs
 # candidates_df.sort_values('prob_planet', ascending=False, inplace=True)
 # print(candidates_df[['kepoi_name','prob_planet']].head(20))
+
+
+
+# Normalizamos X para que la red neuronal no se "maree"
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Split train/test (con los datos ya escalados)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# 1. Definir la arquitectura de la red
+model = Sequential([
+    Dense(32, activation='relu', input_shape=(X_train.shape[1],)),  # capa oculta con 32 neuronas
+    Dropout(0.3),  # ayuda a evitar sobreajuste
+    Dense(16, activation='relu'),  # otra capa oculta
+    Dense(1, activation='sigmoid')  # salida (0 o 1, probabilidad de planeta)
+])
+
+# 2. Compilar el modelo (qué función de pérdida y optimizador usamos)
+model.compile(
+    optimizer=Adam(learning_rate=0.001),
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+
+# 3. Entrenar
+history = model.fit(
+    X_train, y_train,
+    validation_data=(X_test, y_test),
+    epochs=30,
+    batch_size=32,
+    verbose=1
+)
+
+# 4. Evaluar
+loss, acc = model.evaluate(X_test, y_test, verbose=0)
+print(f"Precisión en test: {acc:.4f}")
+
+# 5. Hacer predicciones
+y_proba = model.predict(X_test).ravel()  # probabilidades de planeta
+y_pred = (y_proba > 0.5).astype(int)     # convertir a 0/1
+
+plt.plot(history.history['accuracy'], label='Entrenamiento')
+plt.plot(history.history['val_accuracy'], label='Validación')
+plt.xlabel('Épocas')
+plt.ylabel('Precisión')
+plt.legend()
+plt.title('Precisión del modelo')
+plt.show()
