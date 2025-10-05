@@ -9,6 +9,8 @@ kepler_False_positive_certified = pd.read_csv('CSV/kepler/Certifed_false_positiv
 kepler_cumulative = pd.read_csv('CSV/kepler/cumulative_2025.08.30_19.18.46.csv',skiprows=53)
 # print(kepler_cumulative.head())
 
+kepler_cumulative_disposition = pd.read_csv('CSV/kepler/cumulative_2025.10.04_15.58.42.csv',skiprows=15)
+
 kepler_False_positive = pd.read_csv('CSV/kepler/False_positives_q1_q17_dr25_koifpp_2025.08.30_19.19.44.csv',skiprows=39)
 # print(kepler_False_positive.head())
 

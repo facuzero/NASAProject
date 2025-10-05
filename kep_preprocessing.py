@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 import tensorflow as tf
-from keras.models import Sequential
+from keras.models import Sequential, save_model
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adam
 
@@ -26,8 +26,15 @@ kepler_cumulative["label"] = kepler_cumulative["koi_disposition"].map({
 })
 
 # Features a usar
-features = ["koi_period", "koi_prad", "koi_depth", "koi_duration", 
-            "koi_steff", "koi_slogg", "koi_srad"]
+features = ["koi_period",
+    "koi_depth",
+    "koi_prad",
+    "koi_teq",
+    "koi_insol",
+    "koi_model_snr",
+    "koi_steff",
+    "koi_slogg",
+    "koi_srad"]
 
 X = kepler_cumulative[features].fillna(0)
 y = kepler_cumulative["label"]
@@ -74,7 +81,7 @@ preprocessor = ColumnTransformer(transformers=[
 ], remainder='drop')  # 'drop' mantiene solo las features listadas
 
 # eliminar filas con NaN en las columnas de features
-df_clean = df.dropna(subset=features)
+df_clean = df.dropna(subset=features + ["label"])
 
 X = df_clean[features]
 y = df_clean['label']
@@ -180,6 +187,7 @@ best_model = grid.best_estimator_
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
+X_test = scaler.transform(X_test)
 
 # Split train/test (con los datos ya escalados)
 X_train, X_test, y_train, y_test = train_test_split(
@@ -188,9 +196,16 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # 1. Definir la arquitectura de la red
 model = Sequential([
-    Dense(32, activation='relu', input_shape=(X_train.shape[1],)),  # capa oculta con 32 neuronas
-    Dropout(0.3),  # ayuda a evitar sobreajuste
-    Dense(16, activation='relu'),  # otra capa oculta
+    Dense(128, activation='relu', input_shape=(X_train.shape[1],)),  # capa oculta con 128 neuronas
+    Dropout(0.3),
+    Dense(64, activation='relu'), #agrego mas neuronas
+    Dropout(0.2),
+    Dense(32, activation='relu'),
+    Dropout(0.2),
+    Dense(16, activation='relu'),
+    Dropout(0.2),
+    Dense(8, activation='relu'),
+    Dropout(0.2),
     Dense(1, activation='sigmoid')  # salida (0 o 1, probabilidad de planeta)
 ])
 
@@ -217,6 +232,9 @@ print(f"Precisión en test: {acc:.4f}")
 # 5. Hacer predicciones
 y_proba = model.predict(X_test).ravel()  # probabilidades de planeta
 y_pred = (y_proba > 0.5).astype(int)     # convertir a 0/1
+
+# Guardar modelo Red Neuronal
+model.save("exoplanet__nn.h5")
 
 plt.plot(history.history['accuracy'], label='Entrenamiento')
 plt.plot(history.history['val_accuracy'], label='Validación')
