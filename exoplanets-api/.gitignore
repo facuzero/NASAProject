@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Credentials / env
+.env
+
+# Model files (si usás LFS, NO ignores)
+# models/*.h5
+
+# Lock files / caches
+pip-wheel-metadata/
