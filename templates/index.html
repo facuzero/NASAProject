@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificador de Exoplanetas</title>
+    <!-- Enlazar CSS correctamente -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Logo arriba a la derecha -->
+    <div class="header">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo">
+    </div>
+
+    <div class="container">
+        <h1>🔭 Clasificador de Exoplanetas</h1>
+        <form id="formulario">
+            <div class="grid">
+                <label>Período orbital (días): <input type="number" step="any" name="koi_period"></label>
+                <label>Radio planetario (Re): <input type="number" step="any" name="koi_prad"></label>
+                <label>Profundidad de tránsito (ppm): <input type="number" step="any" name="koi_depth"></label>
+                <label>Duración (horas): <input type="number" step="any" name="koi_duration"></label>
+                <label>Temp. estrella (K): <input type="number" step="any" name="koi_steff"></label>
+                <label>Gravedad superficial (logg): <input type="number" step="any" name="koi_slogg"></label>
+                <label>Radio estelar (R☉): <input type="number" step="any" name="koi_srad"></label>
+                <label>Señal-Ruido del tránsito: <input type="number" step="any" name="koi_model_snr"></label>
+                <label>Flujo incidente (Earth flux): <input type="number" step="any" name="koi_insol"></label>
+                <label>Temp. de equilibrio (K): <input type="number" step="any" name="koi_teq"></label>
+                <label>Impacto: <input type="number" step="any" name="koi_impact"></label>
+            </div>
+            <button type="submit">Predecir</button>
+        </form>
+
+        <div id="resultado"></div>
+    </div>
+
+    <!-- Enlazar JS correctamente -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
