@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 
 # Paths de los modelos
-MODEL_PATH = os.path.join("models", "exoplanet_nn.h5")
+MODEL_PATH = os.path.join("models", "exoplanet__nn.h5")
 SCALER_PATH = os.path.join("models", "scaler_kepler.joblib")
 
 # Cargar modelo entrenado
